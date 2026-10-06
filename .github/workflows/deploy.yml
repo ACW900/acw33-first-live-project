@@ -16,11 +16,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSHPRIVATEKEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SERVER_PORT || '2222' }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy
         run: |
-          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT }} \
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT || '2222' }} \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
             "cd ~/apps/acw33-first-live-project && git pull origin main"
 

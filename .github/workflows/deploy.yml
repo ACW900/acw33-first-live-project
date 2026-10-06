@@ -1,0 +1,35 @@
+name: Deploy Static Site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key -p ${{ secrets.SERVER_PORT }} \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
+            "cd ~/apps/acw33-first-live-project && git pull origin main"
+
+      - name: Verify site is live
+        run: |
+          sleep 3
+          curl -fsS https://acw33firstliveproj.online > /dev/null
+          echo "Site is responding"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
